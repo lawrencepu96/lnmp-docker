@@ -6,6 +6,7 @@ services:
     working_dir: /www/html
     volumes: 
       - /www/html:/www/html
+      - /www/run:/www/run
       - /docker/nginx1.14.2/etc:/etc/nginx
     restart: always
     ports:
@@ -17,6 +18,7 @@ services:
     working_dir: /www/html
     volumes:
       - /www/html:/www/html
+      - /www/run:/www/run
       - /docker/php-fpm7.1.27/etc:/usr/local/etc
     restart: always
     ports:
@@ -28,8 +30,6 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=loginmysql
       - MYSQL_ROOT_HOST=%
-    volumes:
-      - /docker/mysql:/var/lib/mysql
     ports:
       - "3306:3306"
   reids:
@@ -46,3 +46,21 @@ services:
     restart: always
     ports:
       - 11211:11211
+  elasticsearch:
+    restart: always
+    container_name: es
+    image: elasticsearch:2.0
+    privileged: true
+    volumes:
+      - /docker/elasticsearch/config:/usr/share/elasticsearch/config
+    environment:
+      - cluster.name=docker-cluster  
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - 9200:9200
+      - 9300:9300
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
