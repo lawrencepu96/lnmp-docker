@@ -37,5 +37,5 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Mailhog
 COPY mhsendmail_linux_amd64 /usr/local/bin/mhsendmail
 RUN chmod +x /usr/local/bin/mhsendmail
-
-RUN usermod -u 1000 www-data
+RUN useradd -m -s /bin/bash www
+RUN usermod -u 1000 www
