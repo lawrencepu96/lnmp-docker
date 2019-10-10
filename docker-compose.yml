@@ -21,8 +21,15 @@ services:
       - /www/run:/www/run
       - /docker/php-fpm7.1.27/etc:/usr/local/etc
     restart: always
-    ports:
-      - 9000:9000
+  php73:
+    build: php-fpm7.3.10
+    container_name: php73
+    working_dir: /www/html
+    volumes:
+      - /www/html:/www/html
+      - /www/run:/www/run
+      - /docker/php-fpm7.3.10/conf:/usr/local/etc/php
+    restart: always
   mysql:
     image: mysql:5.7.25
     restart: always
