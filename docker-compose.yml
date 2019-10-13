@@ -12,9 +12,12 @@ services:
     ports:
       - 80:80
       - 443:443
-  php-fpm:
+    depends_on:
+      - php71
+      - php73
+  php71:
     build: php-fpm7.1.27
-    container_name: php-fpm
+    container_name: php71
     working_dir: /www/html
     volumes:
       - /www/html:/www/html
@@ -28,7 +31,7 @@ services:
     volumes:
       - /www/html:/www/html
       - /www/run:/www/run
-      - /docker/php-fpm7.3.10/conf:/usr/local/etc/php
+      - /docker/php-fpm7.3.10/etc:/usr/local/etc
     restart: always
   mysql:
     image: mysql:5.7.25
