@@ -49,6 +49,7 @@ services:
     image: redis:latest
     container_name: redis
     restart: always
+    command: redis-server --requirepass loginredis123.
     volumes:
       - /docker/redis:/data
     ports:
