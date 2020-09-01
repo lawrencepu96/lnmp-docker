@@ -13,17 +13,7 @@ services:
       - 80:80
       - 443:443
     depends_on:
-      - php71
       - php73
-  php71:
-    build: php-fpm7.1.27
-    container_name: php71
-    working_dir: /www/html
-    volumes:
-      - /www/html:/www/html
-      - /www/run:/www/run
-      - /docker/php-fpm7.1.27/etc:/usr/local/etc
-    restart: always
   php73:
     build: php-fpm7.3.10
     container_name: php73
@@ -36,6 +26,9 @@ services:
     ports:
       - 9511:9511
       - 9512:9512
+      - 9513:9513
+      - 9514:9514
+      - 9515:9515
   mysql:
     image: mysql:5.7.25
     restart: always
@@ -61,20 +54,25 @@ services:
     ports:
       - 11211:11211
   elasticsearch:
-    restart: always
+    image: elasticsearch:7.9.0
     container_name: es
-    image: elasticsearch:2.0
-    privileged: true
+    restart: always
     volumes:
-      - /docker/elasticsearch/config:/usr/share/elasticsearch/config
+      - /docker/elasticsearch/data:/usr/share/elasticsearch/data
     environment:
-      - cluster.name=docker-cluster  
+      - cluster.name=elasticsearch
+      - discovery.type=single-node
+      - node.name=es7_01
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ports:
       - 9200:9200
       - 9300:9300
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
+  kibana:
+    image: kibana:7.9.0
+    container_name: kibana
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+    restart: always
