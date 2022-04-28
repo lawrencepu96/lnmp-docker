@@ -26,8 +26,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && docker-php-ext-configure intl \
     && docker-php-ext-configure opcache --enable-opcache \
     && docker-php-ext-install -j$(nproc) gd bz2 intl bcmath pdo_mysql zip xsl json mysqli opcache mcrypt soap sockets \
-    && pecl install redis memcached \
-    && docker-php-ext-enable redis memcached \
+    && pecl install redis memcached mongodb\
+    && docker-php-ext-enable redis memcached mongodb\
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
@@ -35,6 +35,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Mailhog
-COPY mhsendmail_linux_amd64 /usr/local/bin/mhsendmail
-RUN chmod +x /usr/local/bin/mhsendmail
+#COPY mhsendmail_linux_amd64 /usr/local/bin/mhsendmail
+#RUN chmod +x /usr/local/bin/mhsendmail
 RUN useradd -m -s /bin/bash www

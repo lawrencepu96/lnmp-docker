@@ -4,34 +4,18 @@ services:
     build: nginx1.14.2
     container_name: nginx
     working_dir: /www/html
+    networks: 
+      - webserver_network
     volumes: 
-      - /www/html:/www/html
-      - /www/run:/www/run
-      - /docker/nginx1.14.2/etc:/etc/nginx
+      - ~/www/html:/www/html
+      - ~/www/run:/www/run
+      - ~/docker/nginx1.14.2/etc:/etc/nginx
     restart: always
     ports:
       - 80:80
       - 443:443
-    depends_on:
-      - php73
-  php73:
-    build: php-fpm7.3.10
-    container_name: php73
-    working_dir: /www/html
-    volumes:
-      - /www/html:/www/html
-      - /www/run:/www/run
-      - /docker/php-fpm7.3.10/etc:/usr/local/etc
-    restart: always
-    ports:
-      - 9511:9511
-      - 9512:9512
-      - 9513:9513
-      - 9514:9514
-      - 9515:9515
   mysql:
     image: mysql:5.7.25
-    restart: always
     container_name: mysql
     environment:
       - MYSQL_ROOT_PASSWORD=loginmysql
@@ -41,38 +25,111 @@ services:
   reids:
     image: redis:latest
     container_name: redis
-    restart: always
     command: redis-server --requirepass loginredis123.
     volumes:
-      - /docker/redis:/data
+      - ~/docker/redis:/data
     ports:
       - 6379:6379
-  memcached:
-    image: memcached:latest
-    container_name: memcached
+  php71:
+    image: reg.xthklocal.cn/xthk-library/php:7.1-fpm
+    container_name: php71
     restart: always
-    ports:
-      - 11211:11211
-  elasticsearch:
-    image: elasticsearch:7.9.0
-    container_name: es
+    working_dir: /www/html 
+    networks: 
+      - webserver_network
+    volumes: 
+      - ~/www/html:/www/html
+      - ~/www/run:/www/run
+      - ~/www/log:/home/logs/fpm
+      - ~/docker/php71/etc/php-fpm.conf:/usr/local/etc/php-fpm.conf
+  yupao:
+    image: registry.cn-beijing.aliyuncs.com/yupao-base/hyperf-debian-php74:dev
+    container_name: yupao
+    working_dir: /opt/www
     restart: always
     volumes:
-      - /docker/elasticsearch/data:/usr/share/elasticsearch/data
-    environment:
-      - cluster.name=elasticsearch
-      - discovery.type=single-node
-      - node.name=es7_01
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - ~/www/html:/opt/www
+    ports:
+      - 9701-9710:9701-9710
+      - 9500-9570:9500-9570
+    tty: true   
+    entrypoint: "bash"
+    network_mode: bridge
+  go:
+    image: golang:buster
+    container_name: go
+    restart: always
+    volumes:
+      - ~/www/go:/www/go
+    working_dir: /www/go
+    tty: true
+    ports: 
+      - 3000-3005:3000-3005
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    ports: 
+      - 15672:15672 #管理端
+      - 5672:5672 #server
+  es:
+    image: elasticsearch:7.14.2
+    container_name: es
+    tty: true
     ports:
       - 9200:9200
       - 9300:9300
+    environment:
+     - ES_JAVA_OPTS=-Xms256m -Xmx256m
+     - discovery.type=single-node
+  logstash:
+    image: logstash:7.14.2
+    container_name: logstash
+    tty: true
+    ports:
+      - 5044:5601
+      - 9600:9600
+    volumes:
+      - ~/www/logstash:/www/logstash
   kibana:
-    image: kibana:7.9.0
+    image: kibana:7.14.2
     container_name: kibana
+    tty: true
     ports:
       - 5601:5601
-    depends_on:
-      - elasticsearch
-    restart: always
+    environment:
+      - ELASTICSEARCH_HOSTS=http://es:9200
+  cerebro:
+    image: lmenezes/cerebro:latest
+    container_name: cerebro
+    ports:
+      - 9001:9001
+    environment:
+      - CEREBRO_PORT=9001
+  consul:
+    image: consul:latest
+    container_name: consul
+    ports:
+      - 8500:8500
+  etcd:
+    image: bitnami/etcd:latest
+    container_name: etcd
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://0.0.0.0:2379
+    ports:
+      - 2379:2379
+      - 2380:2380
+  jdk:
+    image: openjdk:17-jdk-oraclelinux7
+    container_name: java
+    working_dir: /www/java
+    tty: true
+    volumes: 
+      - ~/www/java:/www/java
+networks:
+  webserver_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 173.23.7.0/24
+
